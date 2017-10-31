@@ -4,6 +4,5 @@ version = "0.0.1"
 authors = ["Andrew Chin <achin@eminence32.net>"]
 
 [dependencies]
-libc = "0.2"
 walkdir = "2.0.1"
 twox-hash = "1"
