@@ -46,9 +46,9 @@ impl std::convert::AsRef<Metadata> for MDPath {
 
 
 /// Returns (hash of file, mtime, filesize)
-fn hash_file<P>(path: P, do_hash: bool) -> (u64, u64, u64)
-where
-    P: AsRef<Path>,
+///
+/// The memtable param is a memorization table, indexed by ino
+fn hash_file(path: &MDPath, do_hash: bool, memtable: &mut HashMap<u64, u64>) -> (u64, u64, u64)
 {
 
 
@@ -58,19 +58,20 @@ where
     let mut file = File::open(path).unwrap();
     let md = file.metadata().unwrap();
 
-    let file_hash = if do_hash {
-
-        let mut buf = [0; 4096];
-        loop {
-            match file.read(&mut buf) {
-                Ok(0) => break,
-                Ok(nbytes) => {
-                    xxhash.write(&buf[..nbytes]);
+    let file_hash : u64 = if do_hash {
+        *memtable.entry(md.st_ino()).or_insert_with(|| {
+            let mut buf = [0; 4096];
+            loop {
+                match file.read(&mut buf) {
+                    Ok(0) => break,
+                    Ok(nbytes) => {
+                        xxhash.write(&buf[..nbytes]);
+                    }
+                    Err(e) => panic!(e),
                 }
-                Err(e) => panic!(e),
             }
-        }
-        xxhash.finish()
+            xxhash.finish()
+        })
     } else {
         0
     };
@@ -129,13 +130,14 @@ fn check(paths: Vec<MDPath>) {
         return;
     }
 
+    let mut hash_memtable = HashMap::new();
 
     // partition these paths by sameness
     let mut table = HashMap::<_, Vec<MDPath>>::new();
     for path in paths {
         // first hash on filesize and mtime only
         table
-            .entry(hash_file(&path, false))
+            .entry(hash_file(&path, false, &mut hash_memtable))
             .or_insert(Vec::new())
             .push(path);
     }
@@ -154,7 +156,7 @@ fn check(paths: Vec<MDPath>) {
     for key in keys_to_rehash {
         for path in table.remove(&key).unwrap() {
             table
-                .entry(hash_file(&path, true))
+                .entry(hash_file(&path, true, &mut hash_memtable))
                 .or_insert(Vec::new())
                 .push(path);
         }
