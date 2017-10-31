@@ -7,7 +7,7 @@ extern crate walkdir;
 use walkdir::WalkDir;
 
 extern crate twox_hash;
-use twox_hash::{XxHash};
+use twox_hash::XxHash;
 
 use std::path::{Path, PathBuf};
 use std::fs;
@@ -48,8 +48,7 @@ impl std::convert::AsRef<Metadata> for MDPath {
 /// Returns (hash of file, mtime, filesize)
 ///
 /// The memtable param is a memorization table, indexed by ino
-fn hash_file(path: &MDPath, do_hash: bool, memtable: &mut HashMap<u64, u64>) -> (u64, u64, u64)
-{
+fn hash_file(path: &MDPath, do_hash: bool, memtable: &mut HashMap<u64, u64>) -> (u64, u64, u64) {
 
 
     //let builder = RandomXxHashBuilder::default();
@@ -58,7 +57,7 @@ fn hash_file(path: &MDPath, do_hash: bool, memtable: &mut HashMap<u64, u64>) -> 
     let mut file = File::open(path).unwrap();
     let md = file.metadata().unwrap();
 
-    let file_hash : u64 = if do_hash {
+    let file_hash: u64 = if do_hash {
         *memtable.entry(md.st_ino()).or_insert_with(|| {
             let mut buf = [0; 4096];
             loop {
@@ -88,8 +87,9 @@ fn hash_file(path: &MDPath, do_hash: bool, memtable: &mut HashMap<u64, u64>) -> 
 }
 
 fn atomic_link<A, B>(src: A, dst: B)
-    where A: AsRef<Path>,
-          B: AsRef<Path>
+where
+    A: AsRef<Path>,
+    B: AsRef<Path>,
 {
     let tmp_dst = dst.as_ref().with_extension("temporary_hardlink");
     fs::hard_link(src, &tmp_dst).expect("Creating temp hardlink");
@@ -103,15 +103,16 @@ fn hardlink(paths: Vec<MDPath>) {
     // find the file with the most number of hardlinks, and use that file as the "master"
     // any file that isn't already linked to this master is converted into a link
 
-    let master = paths.iter().max_by(
-        |a, b| a.md.st_nlink().cmp(&b.md.st_nlink()),
-    ).unwrap();
+    let master = paths
+        .iter()
+        .max_by(|a, b| a.md.st_nlink().cmp(&b.md.st_nlink()))
+        .unwrap();
 
     //println!("master is {:?}", master.p);
 
     for p in &paths {
         if p.md.st_ino() != master.md.st_ino() {
-            println!("Must link {} to {}", p.p.display() ,  master.p.display());
+            println!("Must link {} to {}", p.p.display(), master.p.display());
             atomic_link(master, p);
         }
     }
@@ -122,11 +123,16 @@ fn hardlink(paths: Vec<MDPath>) {
 fn check(paths: Vec<MDPath>) {
 
 
-    if paths.len() < 2 { return; } // we can't hardlink a file to itself
+    if paths.len() < 2 {
+        return;
+    } // we can't hardlink a file to itself
 
     // as a short-circuit, if these all have the same inode, they are already linked and we don't
     // have to do any more checking
-    if paths.iter().all(|mdp| mdp.md.st_ino() == paths[0].md.st_ino()) {
+    if paths.iter().all(
+        |mdp| mdp.md.st_ino() == paths[0].md.st_ino(),
+    )
+    {
         return;
     }
 
