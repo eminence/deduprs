@@ -1,8 +1,3 @@
-#![feature(convert)]
-#![feature(path_ext)]
-#![feature(fs_time)]
-
-
 extern crate walkdir;
 use walkdir::WalkDir;
 
@@ -18,7 +13,6 @@ use std::collections::HashMap;
 use std::env;
 use std::convert::From;
 use std::hash::Hasher;
-use std::fmt::Debug;
 
 /// Instead of looking up the metadata of a file multiple times, cache it!
 #[derive(Debug)]
@@ -232,3 +226,5 @@ fn main() {
         .collect();
     dedup(dirs);
 }
+
+
