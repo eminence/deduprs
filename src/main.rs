@@ -194,7 +194,8 @@ where
                                 None
                             }
                         })
-                    }).collect(),
+                    })
+                    .collect(),
             );
         }
     }
