@@ -18,14 +18,14 @@ Imagine you had the following directory structures:
 
 ```
 
-which was replicated in several different directories, for example `testA/`, `testB/` and `testC/`.  The directories pass in on the
+which was replicated in several different directories, for example `testA/`, `testB/` and `testC/`.  The directories passed in on the
 command line are called "root directories" or "roots".  
 
 
 If you run `./dedup test*`, the first directory will be used as the primary tree to be walked.  For each file in it,
 dedup.rs will check to see if it exists in the other roots.  For example, does `testB/foo/one/a.txt` and `testC/foo/one/a.txt` exist?
 
-Each file that exists in multiple roots will be checked for sameness.  Any files that are identical will be hard-linked together.  
+Each file that exists in multiple roots will be checked for content sameness.  Any files that are identical will be hard-linked together.  
 
 To create the links, first a new link is created to a temporary file, and then then temporary file is moved on top of the real file.
 
@@ -40,7 +40,7 @@ as read-only, and never written to.
 
 When looking for files to deduplicate, they must exist in at least 2 of the roots.  They need not exist in every root.
 
-Given a set of files with the same name, the set is first partitioned based on sameness.  As an example, if you had 5 files total, and files 1 and 2 were the same, and files 3 and 4 where the same, and file 5 was different from everything else, then files 1 and 2 would be hardlinked and files 3 and 4 would be hardlinked.  
+Given a set of files with the same name, the set is first partitioned based on content sameness.  As an example, if you had 5 files total, and files 1 and 2 were the same, and files 3 and 4 where the same, and file 5 was different from everything else, then files 1 and 2 would be hardlinked and files 3 and 4 would be hardlinked.  
 
 As an optimiation, files with different mtimes and file sizes are never considered the same.  If they are, then the files are then
 hashed with with [xxHash](https://github.com/Cyan4973/xxHash).  
