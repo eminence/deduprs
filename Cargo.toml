@@ -1,7 +1,8 @@
 [package]
 name = "dedup"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Andrew Chin <achin@eminence32.net>"]
+edition = "2021"
 
 [dependencies]
 walkdir = "2.0.1"

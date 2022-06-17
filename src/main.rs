@@ -1,7 +1,5 @@
-extern crate walkdir;
 use walkdir::WalkDir;
 
-extern crate twox_hash;
 use twox_hash::XxHash;
 
 use std::collections::HashMap;
@@ -57,7 +55,7 @@ fn hash_file(path: &MDPath, do_hash: bool, memtable: &mut HashMap<u64, u64>) -> 
                     Ok(nbytes) => {
                         xxhash.write(&buf[..nbytes]);
                     }
-                    Err(e) => panic!(e),
+                    Err(e) => panic!("{e}"),
                 }
             }
             xxhash.finish()
