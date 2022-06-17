@@ -127,7 +127,7 @@ fn check(paths: Vec<MDPath>) {
         // first hash on filesize and mtime only
         table
             .entry(hash_file(&path, false, &mut hash_memtable))
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(path);
     }
 
@@ -146,14 +146,13 @@ fn check(paths: Vec<MDPath>) {
         for path in table.remove(&key).unwrap() {
             table
                 .entry(hash_file(&path, true, &mut hash_memtable))
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(path);
         }
     }
 
     // now we can link files
-    for (k, v) in table {
-        let (_hash, _mtime, size) = k;
+    for ((_hash, _mtime, size), v) in table {
         if v.len() > 1 && size > 0 {
             hardlink(&v);
         }
@@ -171,7 +170,7 @@ where
         return;
     }
 
-    let prefix = &paths[0].as_ref();
+    let prefix = paths[0].as_ref();
 
     for entry in WalkDir::new(&paths[0]).follow_links(false) {
         let entry = entry.unwrap();
