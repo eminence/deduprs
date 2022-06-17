@@ -1,1 +1,8 @@
 target
+
+# Some directories used for testing
+testA/
+testB/
+testC/
+testD/
+venv/
